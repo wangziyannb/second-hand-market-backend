@@ -50,7 +50,6 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "user not exists, or password is wrong", http.StatusUnauthorized)
 		return
 	}
-	// don't add the password to token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": user.UserName,
 		"exp":      time.Now().Add(time.Hour * 24).Unix(),

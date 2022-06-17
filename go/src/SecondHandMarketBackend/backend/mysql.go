@@ -17,7 +17,7 @@ var (
 )
 
 type MysqlBackend struct {
-	db *gorm.DB
+	Db *gorm.DB
 }
 
 func InitMysqlBackend() {
@@ -44,16 +44,21 @@ func InitMysqlBackend() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	MysqlBE = &MysqlBackend{db: db}
+	MysqlBE = &MysqlBackend{Db: db}
 }
 
 func (backend *MysqlBackend) ReadFromMysql() {
 
 }
 
+func (backend *MysqlBackend) ReadOneFromMysql(receiver interface{}, query *gorm.DB) error{
+	result := query.First(receiver)
+	return result.Error
+}
+
 func (backend *MysqlBackend) SaveToMysql(i interface{}) error {
 	fmt.Printf("%T", i)
-	result := backend.db.Create(i)
+	result := backend.Db.Create(i)
 	return result.Error
 }
 

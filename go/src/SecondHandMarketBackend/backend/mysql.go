@@ -47,10 +47,8 @@ func InitMysqlBackend() {
 	MysqlBE = &MysqlBackend{db: db}
 }
 
-func (backend *MysqlBackend) ReadFromMysql(i, j interface{}) error {
-	// print type
-	result := backend.db.Where(i).First(j)
-	return result.Error
+func (backend *MysqlBackend) ReadFromMysql() {
+
 }
 
 func (backend *MysqlBackend) SaveToMysql(i interface{}) error {

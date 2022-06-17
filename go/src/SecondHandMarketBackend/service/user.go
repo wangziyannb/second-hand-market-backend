@@ -10,6 +10,8 @@ func CreateUser(user *model.User) error {
 	return err
 }
 
-func CheckUser(user *model.User) {
-
+func CheckUser(user *model.User) error{
+	var result model.User
+	err := backend.MysqlBE.ReadOneFromMysql(&result, backend.MysqlBE.Db.Where(&user))
+	return err
 }

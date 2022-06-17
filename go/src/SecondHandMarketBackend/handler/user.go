@@ -50,7 +50,6 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 拿到的user对象去服务器验证
 	exists := service.CheckUser(&user)
 	fmt.Print("exist", exists)
 	// if err != nil {

@@ -20,10 +20,10 @@ func CreateUser(user *model.User) error {
  * @param {*model.User} user
  * @return {*}
  */
-func CheckUser(user *model.User) error {
+func CheckUser(user *model.User) (model.User, error) {
 	var result model.User
 	//build query via chain method
 	query := backend.MysqlBE.Db.Where(&user)
 	err := backend.MysqlBE.ReadOneFromMysql(&result, query)
-	return err
+	return result, err
 }

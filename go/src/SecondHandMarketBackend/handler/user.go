@@ -36,7 +36,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//check if this email already in the db
-	if err := service.CheckUser(&model.User{Email: user.Email}); !errors.Is(err, gorm.ErrRecordNotFound) {
+	if _, err := service.CheckUser(&model.User{Email: user.Email}); !errors.Is(err, gorm.ErrRecordNotFound) {
 		http.Error(w, "Failed to add user to backend", http.StatusBadRequest)
 		return
 	}
@@ -66,16 +66,17 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad json", http.StatusBadRequest)
 		return
 	}
-	if err := service.CheckUser(&user); err != nil {
+	result, err := service.CheckUser(&user)
+	if err != nil {
 		http.Error(w, "user not exists, or password is wrong", http.StatusUnauthorized)
 		return
 	}
 	// don't add the password to token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"Email":      user.Email,
-		"University": user.University,
-		"Phone":      user.Phone,
-		"UserName":   user.UserName,
+		"Email":      result.Email,
+		"University": result.University,
+		"Phone":      result.Phone,
+		"UserName":   result.UserName,
 		"exp":        time.Now().Add(time.Hour * 24).Unix(),
 	})
 	ss, err := token.SignedString(mySigningKey)

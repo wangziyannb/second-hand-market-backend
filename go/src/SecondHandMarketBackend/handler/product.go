@@ -10,6 +10,7 @@ import (
 	"SecondHandMarketBackend/service"
 
 	jwt "github.com/form3tech-oss/jwt-go"
+	"github.com/gorilla/mux"
 )
 
 /**
@@ -40,7 +41,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	quantity, err := strconv.Atoi(r.FormValue("Qty"))
 	if err != nil {
 		http.Error(w, "Quantity cannot be parsed into int", http.StatusBadRequest)
-		fmt.Printf("Quantity cannot be parsed into int %v\n", err)
 		return
 	}
 	p.Qty = quantity
@@ -54,7 +54,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	result, err := service.CheckUser(&u)
 	if err != nil {
 		http.Error(w, "Couldn't find user", http.StatusBadRequest)
-		fmt.Printf("Couldn't find user %v\n", err)
 		return
 	}
 	p.UserId = result.ID
@@ -62,7 +61,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	err = r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		http.Error(w, "Couldn't parse multipart form", http.StatusBadRequest)
-		fmt.Printf("Couldn't parse multipart form %v\n", err)
 		return
 	}
 	// 之后可以改进，使用goroutine waitgroup来同时上传多个文件
@@ -71,13 +69,11 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		file, err := fh.Open()
 		if err != nil {
 			http.Error(w, "Image file is not available", http.StatusBadRequest)
-			fmt.Printf("Image file is not available %v\n", err)
 			return
 		}
 		err = service.SaveProductToGCS(&ph, &p, file)
 		if err != nil {
 			http.Error(w, "Couldn't save post to GCS", http.StatusBadRequest)
-			fmt.Printf("Couldn't save post to GCS %v\n", err)
 			return
 		}
 		file.Close()
@@ -86,7 +82,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	photoJSON, err := json.Marshal(ph)
 	if err != nil {
 		http.Error(w, "Failed to convert photo to JSON", http.StatusInternalServerError)
-		fmt.Printf("Failed to convert photo to JSON %v\n", err)
 		return
 	}
 	p.Photo = photoJSON
@@ -99,4 +94,25 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Post is saved successfully.")
+}
+
+func productHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Received one item detail request")
+
+	var p model.Product
+	id, err := strconv.ParseUint(mux.Vars(r)["id"], 0, 64)
+	if err != nil {
+		http.Error(w, "Failed to parse product id to uint", http.StatusInternalServerError)
+		return
+	}
+	p.ID = uint(id)
+	p, err = service.SearchProductByID(&p)
+
+	js, err := json.Marshal(p)
+	if err != nil {
+		http.Error(w, "Failed to get json data from search result", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }

@@ -27,7 +27,7 @@ type Product struct {
 	Photo datatypes.JSON `gorm:"not null" json:"Photo"`
 	Qty   int            `gorm:"not null" json:"Qty"`
 	//foreign key ref
-	UserId int
+	UserId uint
 	User   User
 }
 
@@ -69,4 +69,8 @@ type Conversation struct {
 	User1    User
 	User2    User
 	Messages []Message
+}
+
+type Photo struct {
+	Photos []string `json:"photos"`
 }

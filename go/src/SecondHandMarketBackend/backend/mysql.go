@@ -63,10 +63,6 @@ func InitMysqlBackend() {
 	MysqlBE = &MysqlBackend{Db: db}
 }
 
-func (backend *MysqlBackend) ReadFromMysql() {
-
-}
-
 /**
  * @description: search if any table contains one object (model.*)
  * @param {interface{}} receiver, receive the result

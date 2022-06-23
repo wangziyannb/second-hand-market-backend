@@ -21,7 +21,7 @@ func InitRouter() *mux.Router {
 	//currently unavailable
 	router.Handle("/message/new", jwtmiddleware.Handler(http.HandlerFunc(messageNewUploadHandler))).Methods("POST")
 
-	// router.Handle("/upload", jwtmiddleware.Handler(http.HandlerFunc(uploadHandler))).Methods("POST")
+	router.Handle("/upload", jwtmiddleware.Handler(http.HandlerFunc(uploadHandler))).Methods("POST")
 	// router.Handle("/product/{id}", jwtmiddleware.Handler(http.HandlerFunc(productHandler))).Methods("POST")
 	// router.Handle("/product-state-change/{id}",
 	// 	jwtmiddleware.Handler(http.HandlerFunc(productStateChangeHandler))).Methods("POST")

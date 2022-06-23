@@ -27,3 +27,12 @@ func CheckUser(user *model.User) error {
 	err := backend.MysqlBE.ReadOneFromMysql(&result, query)
 	return err
 }
+
+func FindUser(user *model.User) error {
+	var result model.User
+	//build query via chain method
+	query := backend.MysqlBE.Db.Where(&user)
+	err := backend.MysqlBE.ReadOneFromMysql(&result, query)
+	*user = result
+	return err
+}

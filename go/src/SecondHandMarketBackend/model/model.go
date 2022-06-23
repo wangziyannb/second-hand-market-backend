@@ -16,19 +16,16 @@ type User struct {
 
 type Product struct {
 	gorm.Model
-	// Product id is included in gorm.Model
-	ProductName string `gorm:"not null" json:"ProductName"`
-	Price       string `gorm:"not null" json:"Price"`
-	Description string `gorm:"not null" json:"Description"`
-	University  string `gorm:"not null" json:"University"`
-	State       string `gorm:"not null" json:"State"`
-	Condition   string `gorm:"not null" json:"Condition"`
-	//about json on gorm, see https://github.com/go-gorm/datatypes
-	Photo datatypes.JSON `gorm:"not null" json:"Photo"`
-	Qty   int            `gorm:"not null" json:"Qty"`
-	//foreign key ref
-	UserId int
-	User   User
+	ProductName string         `gorm:"not null" json:"ProductName"`
+	Price       string         `gorm:"not null" json:"Price"`
+	Description string         `gorm:"not null" json:"Description"`
+	University  string         `gorm:"not null" json:"University"`
+	State       string         `gorm:"not null" json:"State"`
+	Condition   string         `gorm:"not null" json:"Condition"`
+	Photo       datatypes.JSON `gorm:"not null" json:"Photo"`
+	Qty         int            `gorm:"not null" json:"Qty"`
+	UserId      uint
+	User        User
 }
 
 type Order struct {
@@ -69,4 +66,8 @@ type Conversation struct {
 	User1    User
 	User2    User
 	Messages []Message
+}
+
+type Photo struct {
+	Photos []string `json:"photos"`
 }

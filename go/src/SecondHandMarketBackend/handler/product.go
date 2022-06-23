@@ -13,7 +13,7 @@ import (
 )
 
 /**
- * @description: post items
+ * @description: post product
  * @param {http.ResponseWriter} w
  * @param {*http.Request} r
  * @return {*}
@@ -24,21 +24,17 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value("user")
 	claims := token.(*jwt.Token).Claims
 	email := claims.(jwt.MapClaims)["Email"]
-	// university := claims.(jwt.MapClaims)["University"]
-	// phone := claims.(jwt.MapClaims)["Phone"]
-	// username := claims.(jwt.MapClaims)["UserName"]
+	university := claims.(jwt.MapClaims)["University"]
+	phone := claims.(jwt.MapClaims)["Phone"]
+	username := claims.(jwt.MapClaims)["UserName"]
 
-	u := model.User{
-		Email: email.(string),
-		// University: university.(string),
-		// UserName:   username.(string),
-		// Phone:      phone.(string),
-	}
-	err := service.FindUser(&u)
-	if err != nil {
-		http.Error(w, "Couldn't find user", http.StatusBadRequest)
-		fmt.Printf("Couldn't find user %v\n", err)
-		return
+	p := model.Product{
+		ProductName: r.FormValue("ProductName"),
+		Price:       r.FormValue("Price"),
+		Description: r.FormValue("Description"),
+		University:  university.(string),
+		State:       r.FormValue("State"),
+		Condition:   r.FormValue("Condition"),
 	}
 
 	quantity, err := strconv.Atoi(r.FormValue("Qty"))
@@ -47,17 +43,21 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Quantity cannot be parsed into int %v\n", err)
 		return
 	}
+	p.Qty = quantity
 
-	p := model.Product{
-		ProductName: r.FormValue("ProductName"),
-		Price:       r.FormValue("Price"),
-		Description: r.FormValue("Description"),
-		State:       r.FormValue("State"),
-		Condition:   r.FormValue("Condition"),
-		Qty:         quantity,
+	u := model.User{
+		Email:      email.(string),
+		University: university.(string),
+		UserName:   username.(string),
+		Phone:      phone.(string),
 	}
-	p.UserId = u.ID
-	p.University = u.University
+	result, err := service.CheckUser(&u)
+	if err != nil {
+		http.Error(w, "Couldn't find user", http.StatusBadRequest)
+		fmt.Printf("Couldn't find user %v\n", err)
+		return
+	}
+	p.UserId = result.ID
 
 	err = r.ParseMultipartForm(10 << 20)
 	if err != nil {
@@ -65,8 +65,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Couldn't parse multipart form %v\n", err)
 		return
 	}
-
-	// 可以使用goroutine waitgroup来同时上传多个文件
+	// 之后可以改进，使用goroutine waitgroup来同时上传多个文件
 	var ph model.Photo
 	for _, fh := range r.MultipartForm.File["Photo"] {
 		file, err := fh.Open()
@@ -83,7 +82,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		file.Close()
 	}
-
 	// Convert model.Photo instance to JSON data
 	photoJSON, err := json.Marshal(ph)
 	if err != nil {
@@ -91,7 +89,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Failed to convert photo to JSON %v\n", err)
 		return
 	}
-
 	p.Photo = photoJSON
 
 	err = service.SaveProductToMysql(&p)

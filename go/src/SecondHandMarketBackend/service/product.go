@@ -5,6 +5,8 @@ import (
 	"SecondHandMarketBackend/model"
 	"mime/multipart"
 	"strconv"
+
+	"gorm.io/gorm"
 )
 
 func SaveProductToGCS(photo *model.Photo, product *model.Product, file multipart.File) error {
@@ -27,7 +29,9 @@ func SaveProductToMysql(product *model.Product) error {
 func SearchProductByID(product *model.Product) (model.Product, error) {
 	var result model.Product
 	//build query via chain method
-	query := backend.MysqlBE.Db.Where(&product)
-	err := backend.MysqlBE.ReadProductFromMysql(&result, query)
+	query := backend.MysqlBE.Db.Where(&product).Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select("ID", "Email", "Phone", "UserName", "University")
+	})
+	err := backend.MysqlBE.ReadOneFromMysql(&result, query)
 	return result, err
 }

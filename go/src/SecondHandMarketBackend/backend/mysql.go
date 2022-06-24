@@ -74,12 +74,10 @@ func (backend *MysqlBackend) ReadOneFromMysql(receiver interface{}, query *gorm.
 	return result.Error
 }
 
-func (backend *MysqlBackend) ReadProductFromMysql(product *model.Product, query *gorm.DB) error {
-	result := query.Preload("User", func(db *gorm.DB) *gorm.DB {
-		return db.Select("ID", "Email", "Phone", "UserName", "University")
-	}).First(product)
-	return result.Error
-}
+// func (backend *MysqlBackend) ReadProductFromMysql(product *model.Product, query *gorm.DB) error {
+// 	result := query.First(product)
+// 	return result.Error
+// }
 
 /**
  * @description: save a object to table. The table is defined by struct in model.*

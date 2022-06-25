@@ -3,6 +3,7 @@ package service
 import (
 	"SecondHandMarketBackend/backend"
 	"SecondHandMarketBackend/model"
+	"errors"
 	"mime/multipart"
 	"strconv"
 
@@ -10,7 +11,6 @@ import (
 )
 
 func SaveProductToGCS(photo *model.Photo, product *model.Product, file multipart.File) error {
-
 	// Generate unique name for each photo
 	uniqueName := strconv.FormatUint(uint64(product.ID), 10) + product.ProductName + strconv.Itoa(len(photo.Photos))
 
@@ -26,6 +26,7 @@ func SaveProductToMysql(product *model.Product) error {
 	return backend.MysqlBE.SaveToMysql(product)
 }
 
+//semantics bug: SearchProductByID doesn't use ID(uint) as input
 func SearchProductByID(product *model.Product) (model.Product, error) {
 	var result model.Product
 	//build query via chain method
@@ -34,4 +35,17 @@ func SearchProductByID(product *model.Product) (model.Product, error) {
 	})
 	err := backend.MysqlBE.ReadOneFromMysql(&result, query)
 	return result, err
+}
+
+func ChangeProductState(ID uint, newState string) error {
+	var product model.Product
+	product.ID = ID
+	query := backend.MysqlBE.Db.Model(&product)
+	switch newState {
+	case "hidden",
+		"pending",
+		"for sale":
+		return backend.MysqlBE.UpdateOneToMysql(query, "state", newState)
+	}
+	return errors.New("not a valid state")
 }

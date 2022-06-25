@@ -10,7 +10,7 @@ import (
  * @param {*model.Order} order
  * @return {*}
  */
-
+//semantics bug: CheckOrderByID doesn't use ID(uint) as input
 func CheckOrderByID(order *model.Order) (model.Order, error) {
 	var result model.Order
 	//build query via chain method
@@ -21,6 +21,15 @@ func CheckOrderByID(order *model.Order) (model.Order, error) {
 
 func ChangeOrderState(order *model.Order, state string) error {
 	query := backend.MysqlBE.Db.Where(&order)
-	return backend.MysqlBE.UpdateToMysql(query, state)
+	return backend.MysqlBE.UpdateOneToMysql(query, "state", state)
 }
 
+/**
+ * @description: create a new order
+ * @param {*model.Order} order
+ * @return {*}
+ */
+func CreateOrder(order *model.Order) error {
+	err := backend.MysqlBE.SaveToMysql(&order)
+	return err
+}

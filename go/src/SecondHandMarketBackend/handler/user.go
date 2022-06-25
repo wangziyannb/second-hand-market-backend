@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	jwt "github.com/form3tech-oss/jwt-go"
+	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
 
@@ -72,6 +74,8 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		//extra: add Id
+		"ID":         result.ID,
 		"Email":      result.Email,
 		"University": result.University,
 		"Phone":      result.Phone,
@@ -85,4 +89,32 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//return token to the front end
 	w.Write([]byte(ss))
+}
+
+/**
+ * @description: get user profile via userid
+ * @param {http.ResponseWriter} w
+ * @param {*http.Request} r
+ * @return {*}
+ */
+func checkUserHandler(w http.ResponseWriter, r *http.Request) {
+	//todo
+	id, err := strconv.ParseUint(mux.Vars(r)["id"], 0, 64)
+	if err != nil {
+		http.Error(w, "Failed to parse product id to uint", http.StatusInternalServerError)
+		return
+	}
+	u, err := service.CheckUserByID(uint(id))
+	if err != nil {
+		http.Error(w, "Unknown user or user profile is broken", http.StatusBadRequest)
+		return
+	}
+	u.UserPwd = ""
+	js, err := json.Marshal(u)
+	if err != nil {
+		http.Error(w, "Failed to get json data from search result", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }

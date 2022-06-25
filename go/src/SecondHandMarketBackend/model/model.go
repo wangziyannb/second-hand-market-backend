@@ -21,7 +21,7 @@ type Product struct {
 	Price       string `gorm:"not null" json:"Price"`
 	Description string `gorm:"not null" json:"Description"`
 	University  string `gorm:"not null" json:"University"`
-	State       string `gorm:"not null" json:"State"`
+	State       string `gorm:"not null" json:"State"` //3 states, hidden, pending, for sale
 	Condition   string `gorm:"not null" json:"Condition"`
 	//about json on gorm, see https://github.com/go-gorm/datatypes
 	Photo datatypes.JSON `gorm:"not null" json:"Photo"`
@@ -33,17 +33,17 @@ type Product struct {
 
 type Order struct {
 	gorm.Model
-	SellerId        int
+	SellerId        uint `json:"SellerId"`
 	Seller          User
-	BuyerId         int
+	BuyerId         uint `json:"BuyerId"`
 	Buyer           User
-	ProductId       int
+	ProductId       uint `json:"ProductId"`
 	Product         Product
 	Qty             int            `gorm:"not null" json:"Qty"`
 	PlaceTime       datatypes.Date `gorm:"not null" json:"PlaceTime"`
-	FinishTime      datatypes.Date `gorm:"not null" json:"FinishTime"`
+	FinishTime      datatypes.Date `json:"FinishTime"`
 	Price           string         `gorm:"not null" json:"Price"`
-	State           string         `gorm:"not null" json:"State"` //3 states, pending, shipping, complete
+	State           string         `gorm:"not null" json:"State"` //4 states, pending, shipping, completed, canceled
 	DeliveryAddress string         `gorm:"not null" json:"DeliveryAddress"`
 	DeliveryType    string         `gorm:"not null" json:"DeliveryType"`
 }

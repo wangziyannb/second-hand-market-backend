@@ -84,8 +84,27 @@ func (backend *MysqlBackend) SaveToMysql(saved interface{}) error {
 	return result.Error
 }
 
-func (backend *MysqlBackend) UpdateToMysql(query *gorm.DB, update interface{}) error{
-	result := query.Update("state", update)
+/**
+ * @description: update one column to table.
+ * @param {*gorm.DB} query
+ * @param {string} column   the name of the column we want to update
+ * @param {interface{}} update
+ * @return {*}
+ */
+func (backend *MysqlBackend) UpdateOneToMysql(query *gorm.DB, column string, update interface{}) error {
+	//shouldn't contain uncomprehensive value here. Use two variables to avoid things like "state"
+	result := query.Update(column, update)
+	return result.Error
+}
+
+/**
+ * @description: update multiple columns to table.
+ * @param {*gorm.DB} query
+ * @param {interface{}} update  Update attributes with `struct`, will only update non-zero fields
+ * @return {*}
+ */
+func (backend *MysqlBackend) UpdateMultiToMysql(query *gorm.DB, update interface{}) error {
+	result := query.Updates(update)
 	return result.Error
 
 }

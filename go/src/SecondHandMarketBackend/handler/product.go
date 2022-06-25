@@ -34,7 +34,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		Price:       r.FormValue("Price"),
 		Description: r.FormValue("Description"),
 		University:  university.(string),
-		State:       r.FormValue("State"),
+		State:       "for sale",
 		Condition:   r.FormValue("Condition"),
 	}
 
@@ -107,7 +107,11 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	p.ID = uint(id)
 	p, err = service.SearchProductByID(&p)
-
+	//bugfix by Ziyan Wang: unhandled error
+	if err != nil {
+		http.Error(w, "No such product", http.StatusBadRequest)
+		return
+	}
 	js, err := json.Marshal(p)
 	if err != nil {
 		http.Error(w, "Failed to get json data from search result", http.StatusInternalServerError)
@@ -115,4 +119,52 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
+}
+
+/**
+ * @description: change the state of product. Only seller can do this operation.
+ * see also: service.ChangeProductState
+ * @param {http.ResponseWriter} w
+ * @param {*http.Request} r
+ * @return {*}
+ */
+func productStateChangeHandler(w http.ResponseWriter, r *http.Request) {
+	user := service.GetUserByToken(r.Context().Value("user").(*jwt.Token).Claims)
+	id, err := strconv.ParseUint(mux.Vars(r)["id"], 0, 64)
+	if err != nil {
+		http.Error(w, "Failed to parse product id to uint", http.StatusInternalServerError)
+		return
+	}
+	//check permission
+	var p model.Product
+	p.ID = uint(id)
+	p, err = service.SearchProductByID(&p)
+	if err != nil {
+		http.Error(w, "No such product", http.StatusBadRequest)
+		return
+	}
+	if p.User.ID != user.ID {
+		http.Error(w, "No permission to do that", http.StatusBadRequest)
+		return
+	}
+	//get new state
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&p); err != nil {
+		fmt.Print(err)
+		http.Error(w, "Bad json", http.StatusBadRequest)
+		return
+	}
+	//must not be pending
+	switch p.State {
+	case "hidden",
+		"for sale":
+		err = service.ChangeProductState(uint(id), p.State)
+		if err != nil {
+			http.Error(w, "Failed to change state of product", http.StatusInternalServerError)
+			return
+		}
+		fmt.Fprint(w, "Successfully changed the state of product")
+		return
+	}
+	http.Error(w, "Not a valid state", http.StatusBadRequest)
 }

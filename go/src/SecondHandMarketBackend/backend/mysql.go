@@ -84,7 +84,9 @@ func (backend *MysqlBackend) SaveToMysql(saved interface{}) error {
 	return result.Error
 }
 
-func (backend *MysqlBackend) UpdateToMysql() {
+func (backend *MysqlBackend) UpdateToMysql(query *gorm.DB, update interface{}) error{
+	result := query.Update("state", update)
+	return result.Error
 
 }
 

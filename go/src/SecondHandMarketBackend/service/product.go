@@ -26,15 +26,15 @@ func SaveProductToMysql(product *model.Product) error {
 	return backend.MysqlBE.SaveToMysql(product)
 }
 
-//semantics bug: SearchProductByID doesn't use ID(uint) as input
-func SearchProductByID(product *model.Product) (model.Product, error) {
-	var result model.Product
+func SearchProductByID(ID uint) (model.Product, error) {
+	var product model.Product
+	product.ID = ID
 	//build query via chain method
 	query := backend.MysqlBE.Db.Where(&product).Preload("User", func(db *gorm.DB) *gorm.DB {
 		return db.Select("ID", "Email", "Phone", "UserName", "University")
 	})
-	err := backend.MysqlBE.ReadOneFromMysql(&result, query)
-	return result, err
+	err := backend.MysqlBE.ReadOneFromMysql(&product, query)
+	return product, err
 }
 
 func ChangeProductState(ID uint, newState string) error {

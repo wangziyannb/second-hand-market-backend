@@ -36,14 +36,12 @@ func orderPlaceHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Recursive purchase", http.StatusBadRequest)
 		return
 	}
-	//no need to check check if login Buyer exists due to foreign key constraint
+	//no need to check if login Buyer exists due to foreign key constraint
 
 	//no need to check product due to foreign key constraint
 	//but we need to check seller though we have foreign key constraint
 	//might be another one? Or this product might be unavailable to purchase.
-	var product model.Product
-	product.ID = order.ProductId
-	product, err := service.SearchProductByID(&product)
+	product, err := service.SearchProductByID(order.ProductId)
 	if err != nil {
 		http.Error(w, "No such product", http.StatusBadRequest)
 		return

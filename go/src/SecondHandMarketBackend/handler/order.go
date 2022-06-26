@@ -92,7 +92,7 @@ func orderStateChangeHandler(w http.ResponseWriter, r *http.Request) {
 	//orderStateChangeHandler can change order state to pending, shipped and completed
 	//order canel is controlled by orderCancelHandler
 
-	//Note: Sell can modify order state from pending to shipped or completed
+	//Note: Seller can modify order state from pending to shipped or completed
 	//Maybe can use token to extract user info and verify user is seller
 
 

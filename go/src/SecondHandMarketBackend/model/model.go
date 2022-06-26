@@ -43,7 +43,7 @@ type Order struct {
 	PlaceTime       datatypes.Date `gorm:"not null" json:"PlaceTime"`
 	FinishTime      datatypes.Date `json:"FinishTime"`
 	Price           string         `gorm:"not null" json:"Price"`
-	State           string         `gorm:"not null" json:"State"` //4 states: Pending, Shipped, Completed, Cancelled
+	State           string         `gorm:"not null" json:"State"` //4 states: pending, shipped, completed, canceled
 	DeliveryAddress string         `gorm:"not null" json:"DeliveryAddress"`
 	DeliveryType    string         `gorm:"not null" json:"DeliveryType"`
 }

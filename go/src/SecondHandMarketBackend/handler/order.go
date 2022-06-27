@@ -193,18 +193,16 @@ func orderDetailHandler(w http.ResponseWriter, r *http.Request) {
 	//check user validation
 	//token -> id -> SellerId or BuyerId
 	user := service.GetUserByToken(r.Context().Value("user").(*jwt.Token).Claims)
-	if user.ID==order.BuyerId || user.ID==order.SellerId{
-	//jsonify
-	js, err := json.Marshal(order)
-	if err != nil {
-		http.Error(w, "Failed to get json data from search result", http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
-	}
-
-	if user.ID!=order.BuyerId && user.ID!=order.SellerId{
+	if user.ID == order.BuyerId || user.ID == order.SellerId {
+		//jsonify
+		js, err := json.Marshal(order)
+		if err != nil {
+			http.Error(w, "Failed to get json data from search result", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(js)
+	} else {
 		http.Error(w, "Failed to get order detail request", http.StatusBadRequest)
 		return
 	}

@@ -168,3 +168,44 @@ func orderCancelHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+/**
+ * @description: order detail
+ * @param {http.ResponseWriter} w
+ * @param {*http.Request} r
+ * @return {*}
+ */
+func orderDetailHandler(w http.ResponseWriter, r *http.Request) {
+	//check order
+	fmt.Println("Recevied one item order detail request")
+	var order model.Order
+	id, err := strconv.ParseUint(mux.Vars(r)["id"], 0, 64)
+	if err != nil {
+		http.Error(w, "Failed to parse order id to unit", http.StatusInternalServerError)
+		return
+	}
+	order.ID = uint(id)
+	order, err = service.CheckOrderByID(&order)
+	if err != nil {
+		http.Error(w, "No such order", http.StatusBadRequest)
+		return
+	}
+	//check user validation
+	//token -> id -> SellerId or BuyerId
+	user := service.GetUserByToken(r.Context().Value("user").(*jwt.Token).Claims)
+	if user.ID==order.BuyerId || user.ID==order.SellerId{
+	//jsonify
+	js, err := json.Marshal(order)
+	if err != nil {
+		http.Error(w, "Failed to get json data from search result", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+	}
+
+	if user.ID!=order.BuyerId && user.ID!=order.SellerId{
+		http.Error(w, "Failed to get order detail request", http.StatusBadRequest)
+		return
+	}
+}

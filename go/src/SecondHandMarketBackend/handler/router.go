@@ -30,7 +30,7 @@ func InitRouter() http.Handler {
 	// router.Handle("/search/{name}", jwtmiddleware.Handler(http.HandlerFunc(searchHandler))).Methods("POST")
 	router.Handle("/order-place", jwtmiddleware.Handler(http.HandlerFunc(orderPlaceHandler))).Methods("POST")
 	// router.Handle("/order-history", jwtmiddleware.Handler(http.HandlerFunc(orderHistoryHandler))).Methods("POST")
-	// router.Handle("/order-detail/{id}", jwtmiddleware.Handler(http.HandlerFunc(orderDetailHandler))).Methods("POST")
+	router.Handle("/order-detail/{id}", jwtmiddleware.Handler(http.HandlerFunc(orderDetailHandler))).Methods("POST")
 	// router.Handle("/order-cancel/{id}", jwtmiddleware.Handler(http.HandlerFunc(orderCancelHandler))).Methods("POST")
 	// router.Handle("/order-state-change/{id}",
 	// 	jwtmiddleware.Handler(http.HandlerFunc(orderStateChangeHandler))).Methods("POST")

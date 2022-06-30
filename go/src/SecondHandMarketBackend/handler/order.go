@@ -34,14 +34,12 @@ func orderPlaceHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Recursive purchase", http.StatusBadRequest)
 		return
 	}
-	//no need to check check if login Buyer exists due to foreign key constraint
+	//no need to check if login Buyer exists due to foreign key constraint
 
 	//no need to check product due to foreign key constraint
 	//but we need to check seller though we have foreign key constraint
 	//might be another one? Or this product might be unavailable to purchase.
-	var product model.Product
-	product.ID = order.ProductId
-	product, err := service.SearchProductByID(&product)
+	product, err := service.SearchProductByID(order.ProductId)
 	if err != nil {
 		http.Error(w, "No such product", http.StatusBadRequest)
 		return
@@ -219,4 +217,43 @@ func orderCancelHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w, "Order has cancelled")
 
+}
+
+/**
+ * @description: order detail
+ * @param {http.ResponseWriter} w
+ * @param {*http.Request} r
+ * @return {*}
+ */
+func orderDetailHandler(w http.ResponseWriter, r *http.Request) {
+	//check order
+	fmt.Println("Recevied one item order detail request")
+	var order model.Order
+	id, err := strconv.ParseUint(mux.Vars(r)["id"], 0, 64)
+	if err != nil {
+		http.Error(w, "Failed to parse order id to unit", http.StatusInternalServerError)
+		return
+	}
+	order.ID = uint(id)
+	order, err = service.CheckOrderByID(&order)
+	if err != nil {
+		http.Error(w, "No such order", http.StatusBadRequest)
+		return
+	}
+	//check user validation
+	//token -> id -> SellerId or BuyerId
+	user := service.GetUserByToken(r.Context().Value("user").(*jwt.Token).Claims)
+	if user.ID == order.BuyerId || user.ID == order.SellerId {
+		//jsonify
+		js, err := json.Marshal(order)
+		if err != nil {
+			http.Error(w, "Failed to get json data from search result", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(js)
+	} else {
+		http.Error(w, "Failed to get order detail request", http.StatusBadRequest)
+		return
+	}
 }

@@ -5,12 +5,13 @@ import (
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	jwt "github.com/form3tech-oss/jwt-go"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
 var mySigningKey = []byte("secret")
 
-func InitRouter() *mux.Router {
+func InitRouter() http.Handler {
 	jwtmiddleware := jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(t *jwt.Token) (interface{}, error) {
 			return []byte(mySigningKey), nil
@@ -29,6 +30,7 @@ func InitRouter() *mux.Router {
 	// router.Handle("/search/{name}", jwtmiddleware.Handler(http.HandlerFunc(searchHandler))).Methods("POST")
 	router.Handle("/order-place", jwtmiddleware.Handler(http.HandlerFunc(orderPlaceHandler))).Methods("POST")
 	// router.Handle("/order-history", jwtmiddleware.Handler(http.HandlerFunc(orderHistoryHandler))).Methods("POST")
+
 	// router.Handle("/order-detail/{id}", jwtmiddleware.Handler(http.HandlerFunc(orderDetailHandler))).Methods("POST")
 	router.Handle("/order-cancel/{id}", jwtmiddleware.Handler(http.HandlerFunc(orderCancelHandler))).Methods("POST")
 	router.Handle("/order-state-change/{id}",
@@ -37,5 +39,10 @@ func InitRouter() *mux.Router {
 	router.Handle("/signup", http.HandlerFunc(signupHandler)).Methods("POST")
 	router.Handle("/signin", http.HandlerFunc(signinHandler)).Methods("POST")
 	router.Handle("/user-check/{id}", http.HandlerFunc(checkUserHandler)).Methods("GET")
-	return router
+
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	headersOk := handlers.AllowedHeaders([]string{"Authorization", "Content-Type"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "DELETE"})
+
+	return handlers.CORS(originsOk, headersOk, methodsOk)(router)
 }

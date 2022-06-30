@@ -22,20 +22,16 @@ import (
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received one upload request")
 
-	token := r.Context().Value("user")
-	claims := token.(*jwt.Token).Claims
-	email := claims.(jwt.MapClaims)["Email"]
-	university := claims.(jwt.MapClaims)["University"]
-	phone := claims.(jwt.MapClaims)["Phone"]
-	username := claims.(jwt.MapClaims)["UserName"]
+	user := service.GetUserByToken(r.Context().Value("user").(*jwt.Token).Claims)
 
 	p := model.Product{
 		ProductName: r.FormValue("ProductName"),
 		Price:       r.FormValue("Price"),
 		Description: r.FormValue("Description"),
-		University:  university.(string),
+		University:  user.University,
 		State:       "for sale",
 		Condition:   r.FormValue("Condition"),
+		UserId:      user.ID,
 	}
 
 	quantity, err := strconv.Atoi(r.FormValue("Qty"))
@@ -44,19 +40,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p.Qty = quantity
-
-	u := model.User{
-		Email:      email.(string),
-		University: university.(string),
-		UserName:   username.(string),
-		Phone:      phone.(string),
-	}
-	result, err := service.CheckUser(&u)
-	if err != nil {
-		http.Error(w, "Couldn't find user", http.StatusBadRequest)
-		return
-	}
-	p.UserId = result.ID
 
 	err = r.ParseMultipartForm(10 << 20)
 	if err != nil {
@@ -96,23 +79,29 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Post is saved successfully.")
 }
 
+/**
+ * @description: return the detail information of the product based on its ID.
+ * @param {http.ResponseWriter} w
+ * @param {*http.Request} r
+ * @return {*}
+ */
 func productHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received one item detail request")
 
-	var p model.Product
 	id, err := strconv.ParseUint(mux.Vars(r)["id"], 0, 64)
 	if err != nil {
-		http.Error(w, "Failed to parse product id to uint", http.StatusInternalServerError)
+		http.Error(w, "Failed to parse product id to uint64", http.StatusInternalServerError)
 		return
 	}
-	p.ID = uint(id)
-	p, err = service.SearchProductByID(&p)
+
+	product, err := service.SearchProductByID(uint(id))
 	//bugfix by Ziyan Wang: unhandled error
 	if err != nil {
 		http.Error(w, "No such product", http.StatusBadRequest)
 		return
 	}
-	js, err := json.Marshal(p)
+
+	js, err := json.Marshal(product)
 	if err != nil {
 		http.Error(w, "Failed to get json data from search result", http.StatusInternalServerError)
 		return
@@ -132,33 +121,31 @@ func productStateChangeHandler(w http.ResponseWriter, r *http.Request) {
 	user := service.GetUserByToken(r.Context().Value("user").(*jwt.Token).Claims)
 	id, err := strconv.ParseUint(mux.Vars(r)["id"], 0, 64)
 	if err != nil {
-		http.Error(w, "Failed to parse product id to uint", http.StatusInternalServerError)
+		http.Error(w, "Failed to parse product id to uint64", http.StatusInternalServerError)
 		return
 	}
 	//check permission
-	var p model.Product
-	p.ID = uint(id)
-	p, err = service.SearchProductByID(&p)
+	product, err := service.SearchProductByID(uint(id))
 	if err != nil {
 		http.Error(w, "No such product", http.StatusBadRequest)
 		return
 	}
-	if p.User.ID != user.ID {
+	if product.UserId != user.ID {
 		http.Error(w, "No permission to do that", http.StatusBadRequest)
 		return
 	}
 	//get new state
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&p); err != nil {
+	if err := decoder.Decode(&product); err != nil {
 		fmt.Print(err)
 		http.Error(w, "Bad json", http.StatusBadRequest)
 		return
 	}
 	//must not be pending
-	switch p.State {
+	switch product.State {
 	case "hidden",
 		"for sale":
-		err = service.ChangeProductState(uint(id), p.State)
+		err = service.ChangeProductState(uint(id), product.State)
 		if err != nil {
 			http.Error(w, "Failed to change state of product", http.StatusInternalServerError)
 			return

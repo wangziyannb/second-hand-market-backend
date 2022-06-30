@@ -3,15 +3,15 @@ package service
 import (
 	"SecondHandMarketBackend/backend"
 	"SecondHandMarketBackend/model"
+
 )
 
 /**
- * @description: use a order to search if this order exists
+ * @description: check if this order exists
  * @param {*model.Order} order
- * @return {*}
+ * @return {model.order, *}
  */
-//semantics bug: CheckOrderByID doesn't use ID(uint) as input
-func CheckOrderByID(order *model.Order) (model.Order, error) {
+func CheckOrder(order *model.Order) (model.Order, error) {
 	var result model.Order
 	//build query via chain method
 	query := backend.MysqlBE.Db.Where(&order)
@@ -19,9 +19,14 @@ func CheckOrderByID(order *model.Order) (model.Order, error) {
 	return result, err
 }
 
+/**
+ * @description: change order state
+ * @param {*model.Order} order, state string
+ * @return {*}
+ */
 func ChangeOrderState(order *model.Order, state string) error {
-	query := backend.MysqlBE.Db.Where(&order)
-	return backend.MysqlBE.UpdateOneToMysql(query, "state", state)
+	query := backend.MysqlBE.Db.Model(&order)
+	return backend.MysqlBE.UpdateOneToMysql(query, "State", state)
 }
 
 /**

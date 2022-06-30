@@ -2,7 +2,7 @@ package backend
 
 import (
 	"SecondHandMarketBackend/constants"
-	"SecondHandMarketBackend/model"
+	// "SecondHandMarketBackend/model"
 
 	"log"
 	"time"
@@ -40,18 +40,18 @@ func InitMysqlBackend() {
 	sqlDb.SetMaxIdleConns(2)
 	sqlDb.SetConnMaxIdleTime(time.Minute)
 
-	err = db.AutoMigrate(&model.User{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = db.AutoMigrate(&model.Order{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = db.AutoMigrate(&model.Product{})
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err = db.AutoMigrate(&model.User{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// err = db.AutoMigrate(&model.Order{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// err = db.AutoMigrate(&model.Product{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// err = db.AutoMigrate(&model.Message{})
 	// if err != nil {
 	// 	log.Fatal(err)

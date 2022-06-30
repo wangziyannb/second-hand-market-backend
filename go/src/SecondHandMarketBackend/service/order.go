@@ -1,10 +1,29 @@
+/*
+ * @Author: xyzhao009 79874305+xyzhao009@users.noreply.github.com
+ * @Date: 2022-06-30 13:16:21
+ * @LastEditors: xyzhao009 79874305+xyzhao009@users.noreply.github.com
+ * @LastEditTime: 2022-06-30 15:59:18
+ * @FilePath: /second-hand-market-backend-3/go/src/SecondHandMarketBackend/service/order.go
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 package service
 
 import (
 	"SecondHandMarketBackend/backend"
 	"SecondHandMarketBackend/model"
-
+	"errors"
 )
+
+func CheckOrderByID(ID uint) (model.Order, error) {
+	var order model.Order
+	order.ID = ID
+	result, err := CheckOrder(&order)
+	if err != nil {
+		return order, err
+	} else {
+		return result, nil
+	}
+}
 
 /**
  * @description: check if this order exists
@@ -24,9 +43,18 @@ func CheckOrder(order *model.Order) (model.Order, error) {
  * @param {*model.Order} order, state string
  * @return {*}
  */
-func ChangeOrderState(order *model.Order, state string) error {
+func ChangeOrderState(ID uint, newState string) error {
+	var order model.Order
+	order.ID = ID
 	query := backend.MysqlBE.Db.Model(&order)
-	return backend.MysqlBE.UpdateOneToMysql(query, "State", state)
+	switch newState {
+	case "pending",
+		"shipped",
+		"completed",
+		"canceled":
+		return backend.MysqlBE.UpdateOneToMysql(query, "state", newState)
+	}
+	return errors.New("not a valid state")
 }
 
 /**
@@ -38,4 +66,5 @@ func CreateOrder(order *model.Order) error {
 	err := backend.MysqlBE.SaveToMysql(&order)
 	return err
 }
+
 

@@ -74,6 +74,11 @@ func (backend *MysqlBackend) ReadOneFromMysql(receiver interface{}, query *gorm.
 	return result.Error
 }
 
+func (backend *MysqlBackend) ReadAllFromMysql(receiver interface{}, query *gorm.DB) error {
+	result := query.Find(receiver)
+	return result.Error
+}
+
 /**
  * @description: save a object to table. The table is defined by struct in model.*
  * @param {interface{}} saved  the object we want to save

@@ -282,6 +282,40 @@ func orderDetailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func orderHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	//use token to get user
+	//return all orders of the user, regardless if user is a buyer and user
+
+	//get user from token
+	token := r.Context().Value("user") //extract user token
+	claims := token.(*jwt.Token).Claims
+	user, err := service.CheckUserByToken(claims) 
+
+	if err!=nil {
+		http.Error(w, "User not exists", http.StatusUnauthorized)
+		fmt.Printf("User not exists %v.\n", err)
+		return
+	}
+
+	//search order by user
+	
+	orders, err := service.SearchOrderByUser(user.ID)
+	if err!=nil{
+		http.Error(w, "Fail to find order", http.StatusInternalServerError)
+		fmt.Printf("Fail to find orders %v.\n", err)
+		return
+	}
+
+	js, err := json.Marshal(orders)
+	if err != nil {
+		http.Error(w, "Failed to get json data from search result", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+
+}
+
 func unit(i int) {
 	panic("unimplemented")
 }

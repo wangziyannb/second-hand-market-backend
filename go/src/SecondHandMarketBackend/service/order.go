@@ -2,7 +2,7 @@
  * @Author: xyzhao009 79874305+xyzhao009@users.noreply.github.com
  * @Date: 2022-06-30 13:16:21
  * @LastEditors: xyzhao009 79874305+xyzhao009@users.noreply.github.com
- * @LastEditTime: 2022-06-30 15:59:18
+ * @LastEditTime: 2022-06-30 18:50:46
  * @FilePath: /second-hand-market-backend-3/go/src/SecondHandMarketBackend/service/order.go
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -67,4 +67,12 @@ func CreateOrder(order *model.Order) error {
 	return err
 }
 
+func SearchOrderByUser(ID uint) ([]model.Order, error) {
+	var orders []model.Order
 
+	//build query via chain method
+	query := backend.MysqlBE.Db.Where(backend.MysqlBE.Db.Table("Order").Where("buyer_id", ID)).Or(backend.MysqlBE.Db.Table("Order").Where("seller_id", ID))
+	err := backend.MysqlBE.ReadAllFromMysql(&orders, query)
+
+	return orders, err
+}

@@ -2,7 +2,7 @@ package backend
 
 import (
 	"SecondHandMarketBackend/constants"
-	"SecondHandMarketBackend/model"
+	// "SecondHandMarketBackend/model"
 
 	"log"
 	"time"
@@ -40,18 +40,18 @@ func InitMysqlBackend() {
 	sqlDb.SetMaxIdleConns(2)
 	sqlDb.SetConnMaxIdleTime(time.Minute)
 
-	err = db.AutoMigrate(&model.User{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = db.AutoMigrate(&model.Order{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = db.AutoMigrate(&model.Product{})
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err = db.AutoMigrate(&model.User{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// err = db.AutoMigrate(&model.Order{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// err = db.AutoMigrate(&model.Product{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// err = db.AutoMigrate(&model.Message{})
 	// if err != nil {
 	// 	log.Fatal(err)
@@ -71,6 +71,11 @@ func InitMysqlBackend() {
  */
 func (backend *MysqlBackend) ReadOneFromMysql(receiver interface{}, query *gorm.DB) error {
 	result := query.First(receiver)
+	return result.Error
+}
+
+func (backend *MysqlBackend) ReadAllFromMysql(receiver interface{}, query *gorm.DB) error {
+	result := query.Find(receiver)
 	return result.Error
 }
 

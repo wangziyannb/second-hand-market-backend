@@ -3,8 +3,19 @@ package service
 import (
 	"SecondHandMarketBackend/backend"
 	"SecondHandMarketBackend/model"
-
+	"errors"
 )
+
+func CheckOrderByID(ID uint) (model.Order, error) {
+	var order model.Order
+	order.ID = ID
+	result, err := CheckOrder(&order)
+	if err != nil {
+		return order, err
+	} else {
+		return result, nil
+	}
+}
 
 /**
  * @description: check if this order exists
@@ -24,9 +35,18 @@ func CheckOrder(order *model.Order) (model.Order, error) {
  * @param {*model.Order} order, state string
  * @return {*}
  */
-func ChangeOrderState(order *model.Order, state string) error {
+func ChangeOrderState(ID uint, newState string) error {
+	var order model.Order
+	order.ID = ID
 	query := backend.MysqlBE.Db.Model(&order)
-	return backend.MysqlBE.UpdateOneToMysql(query, "State", state)
+	switch newState {
+	case "pending",
+		"shipped",
+		"completed",
+		"canceled":
+		return backend.MysqlBE.UpdateOneToMysql(query, "state", newState)
+	}
+	return errors.New("not a valid state")
 }
 
 /**
@@ -39,3 +59,12 @@ func CreateOrder(order *model.Order) error {
 	return err
 }
 
+func SearchOrderByUser(ID uint) ([]model.Order, error) {
+	var orders []model.Order
+
+	//build query via chain method
+	query := backend.MysqlBE.Db.Where(backend.MysqlBE.Db.Table("Order").Where("buyer_id", ID)).Or(backend.MysqlBE.Db.Table("Order").Where("seller_id", ID))
+	err := backend.MysqlBE.ReadAllFromMysql(&orders, query)
+
+	return orders, err
+}

@@ -77,18 +77,18 @@ func orderPlaceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 /**
- * @description: change order state 
+ * @description: change order state
  * @param {http.ResponseWriter} w
  * @param {*http.Request} r
  * @return {*}
  */
 
- func orderStateChangeHandler(w http.ResponseWriter, r *http.Request) {
+func orderStateChangeHandler(w http.ResponseWriter, r *http.Request) {
 	//use url to get ordre Id->check order using ID, and get old order state
 	//decode json data to get new order state
 	//use token to get user, and verify if user is associated with order
 	//change order state: ->seller can change order state from pending to shipped
-	//               ->buyer can change state from shipped(via mail)/pending (in-person) to completed   
+	//               ->buyer can change state from shipped(via mail)/pending (in-person) to completed
 	//if order is completed, change product state to "hidden"
 
 	fmt.Println("Received an order state change request")
@@ -101,7 +101,7 @@ func orderPlaceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//check if this order exists using orderID
-	order, err := service.CheckOrderByID(uint(id))
+	order, err := service.CheckOrderByID(uint(int(id)))
 	if err != nil {
 		http.Error(w, "Fail to find order", http.StatusBadRequest)
 		fmt.Printf("Fail to find order %v.\n", err)
@@ -113,9 +113,9 @@ func orderPlaceHandler(w http.ResponseWriter, r *http.Request) {
 	//check user via token
 	token := r.Context().Value("user") //extract user token
 	claims := token.(*jwt.Token).Claims
-	user,err := service.CheckUserByToken(claims) 
+	user, err := service.CheckUserByToken(claims)
 
-	if err!=nil {
+	if err != nil {
 		http.Error(w, "User not exists", http.StatusUnauthorized)
 		fmt.Printf("User not exists %v.\n", err)
 		return
@@ -153,7 +153,7 @@ func orderPlaceHandler(w http.ResponseWriter, r *http.Request) {
 		if neworder.State == "completed" {
 			service.ChangeProductState(order.ProductId, "hidden")
 		}
-	}else{
+	} else {
 		http.Error(w, "Fail to change order state", http.StatusUnauthorized)
 		fmt.Printf("Fail to change order state")
 		return
@@ -162,7 +162,6 @@ func orderPlaceHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Order state has changed")
 
 }
-
 
 /**
  * @description: cancel order
@@ -177,8 +176,8 @@ func orderCancelHandler(w http.ResponseWriter, r *http.Request) {
 	//order can be canceled only if order state is pending
 	//cancel order:change order state to "canceled"
 	//change product state to "for sale"
-	
-	//Note: we are not eagerly deleting the order 
+
+	//Note: we are not eagerly deleting the order
 	//User can retrieve their canceled order later
 	//maybe need another function to delete canceled order if canceled order is 5-year old?
 
@@ -202,7 +201,7 @@ func orderCancelHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//check if this order exists using orderID
-	order, err := service.CheckOrderByID(uint(id))
+	order, err := service.CheckOrderByID(uint(int(id)))
 	if err != nil {
 		http.Error(w, "Fail to find order", http.StatusBadRequest)
 		fmt.Printf("Fail to find order %v.\n", err)
@@ -219,11 +218,12 @@ func orderCancelHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//check if order is pending
-	if oldstate != "pending"{
+	if oldstate != "pending" {
+		http.Error(w, "order can't be canceled", http.StatusUnauthorized)
 		fmt.Println("order can't be canceled")
 		return
 	}
-	
+
 	//cancel order -> change order state to canceled
 	if err := service.ChangeOrderState(order.ID, "canceled"); err != nil {
 		http.Error(w, "Fail to change order state", http.StatusInternalServerError)
@@ -289,18 +289,18 @@ func orderHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	//get user from token
 	token := r.Context().Value("user") //extract user token
 	claims := token.(*jwt.Token).Claims
-	user, err := service.CheckUserByToken(claims) 
+	user, err := service.CheckUserByToken(claims)
 
-	if err!=nil {
+	if err != nil {
 		http.Error(w, "User not exists", http.StatusUnauthorized)
 		fmt.Printf("User not exists %v.\n", err)
 		return
 	}
 
 	//search order by user
-	
+
 	orders, err := service.SearchOrderByUser(user.ID)
-	if err!=nil{
+	if err != nil {
 		http.Error(w, "Fail to find order", http.StatusInternalServerError)
 		fmt.Printf("Fail to find orders %v.\n", err)
 		return
@@ -314,8 +314,4 @@ func orderHistoryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
 
-}
-
-func unit(i int) {
-	panic("unimplemented")
 }

@@ -155,3 +155,32 @@ func productStateChangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Error(w, "Not a valid state", http.StatusBadRequest)
 }
+
+func searchHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Received one search request")
+	user := service.GetUserByToken(r.Context().Value("user").(*jwt.Token).Claims)
+
+	decoder := json.NewDecoder(r.Body)
+	var product model.Product
+	if err := decoder.Decode(&product); err != nil {
+		http.Error(w, "Bad json", http.StatusBadRequest)
+		return
+	}
+
+	products, err := service.SearchProductByName(product.ProductName, user.University)
+
+	if err != nil {
+        http.Error(w, "Failed to get products from backend", http.StatusInternalServerError) //StatusInternalServerError = 500
+        fmt.Printf("Failed to get products from backend %v.\n", err)
+        return
+    }
+	js, err := json.Marshal(products)
+    //handle parse过程中出现的error
+    if err != nil {
+        http.Error(w, "Failed to parse products into JSON format", http.StatusInternalServerError)
+        fmt.Printf("Failed to parse products into JSON format %v.\n", err)
+        return
+    }
+	w.Header().Set("Content-Type", "application/json")
+    w.Write(js)
+}

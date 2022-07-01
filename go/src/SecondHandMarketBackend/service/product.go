@@ -49,3 +49,16 @@ func ChangeProductState(ID uint, newState string) error {
 	}
 	return errors.New("not a valid state")
 }
+
+func SearchProductByName(productName string, university string) ([]model.Product, error) {
+
+	var products []model.Product
+	query := backend.MysqlBE.Db.Where("product_name LIKE ? AND university = ? AND state = ?", "%" + productName + "%", university, "for sale");
+
+	err := backend.MysqlBE.ReadAllFromMysql(&products, query)
+	if err != nil {
+            return nil, err
+    }
+
+    return products, err
+}

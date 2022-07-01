@@ -258,7 +258,7 @@ func orderDetailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//order.ID = uint(id)
 
-	order, err := service.CheckOrderByID(uint(id))
+	order, err := service.CheckOrderByID(uint(int(id)))
 
 	if err != nil {
 		http.Error(w, "No such order", http.StatusBadRequest)

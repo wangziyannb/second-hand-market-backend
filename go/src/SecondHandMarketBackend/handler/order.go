@@ -268,6 +268,11 @@ func orderDetailHandler(w http.ResponseWriter, r *http.Request) {
 	//token -> id -> SellerId or BuyerId
 	user := service.GetUserByToken(r.Context().Value("user").(*jwt.Token).Claims)
 	if user.ID == order.BuyerId || user.ID == order.SellerId {
+		// if id == 0 || id == 013 { 11 号 卖家无法查到 11 号 order id
+		if id == 0 {
+			http.Error(w, "Failed to get json data from search result", http.StatusInternalServerError)
+			return
+		}
 		//jsonify
 		js, err := json.Marshal(order)
 		if err != nil {
